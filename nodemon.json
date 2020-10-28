@@ -1,0 +1,4 @@
+{
+  "ignore": ["**/*.test.js"],
+  "exec": "ts-node ./BE/index.ts"
+}
