@@ -70,6 +70,6 @@
   "typeAcquisition": {
     "enable": false
   },
-  "include": ["BE/**/*"],
-  "exclude": ["node_modules","FE"]
+  "include": ["BE/**/*","FE/**/*"],
+  "exclude": ["node_modules","build"]
 }
