@@ -24,7 +24,7 @@ export interface Achievement {
   id: string;
   description: string;
   image: string;
-  checkComplete: (status: Status) => Status;
+  checkComplete: (tasksStatusId: Status[]) => Boolean;
 }
 
 export interface Challenge {
@@ -67,13 +67,13 @@ export interface GetTaskArchive {
 export interface StartNewChallenge extends Function {
   (): Challenge;
   listOfTasks: Record<Task["id"], Task>;
-  listOfChallenges: Record<Challenge["id"], Challenge>;
+  listOfAchievements: Record<Achievement["id"], Achievement>;
   challengeDuration: number;
   numberOfAchievements: number;
 }
 
 export interface CalculateAchievementsStatus extends Function {
-  (): Record<Achievement["id"], Status>;
-  achievementsList: Array<Achievement["id"]>;
-  tasksStatus: Status;
+  (): Map<Achievement["id"], Status>;
+  listOfAchievements: Record<Achievement["id"], Achievement>;
+  tasksStatus: Record<Task["id"], Status>;
 }
