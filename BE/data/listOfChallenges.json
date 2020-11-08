@@ -1,0 +1,53 @@
+{
+  "1": {
+    "id": "1",
+    "state": "InProgress",
+    "startDate": 1605559641866,
+    "tasksOrder": [
+      "2",
+      "3",
+      "1",
+      "4"
+    ],
+    "tasksStatus": {
+      "2": {
+        "state": "Pending",
+        "updated": 1605559641866
+      },
+      "3": {
+        "state": "Pending",
+        "updated": 1605559641866
+      },
+      "1": {
+        "state": "Pending",
+        "updated": 1605559641866
+      },
+      "4": {
+        "state": "Pending",
+        "updated": 1605559641866
+      }
+    },
+    "achievementsStatus": {
+      "1": {
+        "state": "Success",
+        "updated": 1605708892710
+      },
+      "2": {
+        "state": "Pending",
+        "updated": 1605708892710
+      },
+      "3": {
+        "state": "Failure",
+        "updated": 1605708892710
+      },
+      "10": {
+        "state": "Success",
+        "updated": 1605708892710
+      },
+      "11": {
+        "state": "Pending",
+        "updated": 1605708892710
+      }
+    }
+  }
+}
