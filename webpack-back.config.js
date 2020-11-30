@@ -15,4 +15,15 @@ module.exports = {
       },
     ],
   },
+  resolve: {
+    extensions: [".js", ".ts"],
+    fallback: {
+      path: require.resolve("path-browserify"),
+      http: require.resolve("stream-http"),
+      stream: require.resolve("stream-browserify"),
+      crypto: require.resolve("crypto-browserify"),
+      zlib: require.resolve("browserify-zlib"),
+    },
+  },
+  target: "node",
 };

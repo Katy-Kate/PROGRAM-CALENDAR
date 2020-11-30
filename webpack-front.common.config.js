@@ -7,7 +7,7 @@ module.exports = {
     filename: "bundle-front.js",
     path: path.resolve(__dirname, "build/FE"),
   },
-  plugins: [new HtmlWebpackPlugin()],
+  plugins: [new HtmlWebpackPlugin({template: "./BE/views/index.html"})],
 
   module: {
     rules: [

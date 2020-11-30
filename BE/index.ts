@@ -1,197 +1,81 @@
-import tasks from "./data/tasks.json";
+import express from "express";
+import path from "path";
+import { challengeRouter } from "./routes/challenge-router";
+import { Status, StatusState } from "./types";
+
 import listOfChallenges from "./data/listOfChallenges.json";
-
 import achievements from "./data/achievements.json";
-import defaultAchievements from "./data/defaultAchievements.json";
-import { checkAchievementsComplete } from "./utils/constants";
 import {
-  Challenge,
-  ActualAchievement,
-  ChallengeState,
-  Status,
-  StatusState,
-  Task,
-  ActualTask,
-  Achievement,
-  // @ts-ignore
-} from "./types";
+  calculateAchievementsStatus,
+  getAchievements,
+  getCurrentTask,
+} from "./helpers";
 
-/**  return new shuffled array.
- * @param {array} arr - array that should be shuffled
- *
- * */
-function shuffle(arr: any[]) {
-  const newArray = [...arr];
-  return newArray.sort(() => Math.random() - 0.5);
-}
+const schedule = require("node-schedule");
 
-/**
- * @param {array} arr - list of items that can be picked
- * @param {number} count - a number of the items that should pick from the array.
- */
-function pickRandomItems(arr: Array<any>, count: number) {
-  const shuffledArray = shuffle(arr);
-  if (shuffledArray.length > count) {
-    shuffledArray.length = count;
-  }
-  return shuffledArray;
-}
+const app = express();
+const port = 3000;
+const server = require("http").createServer(app);
+const io = require("socket.io")(server);
 
-/**
- *
- * @param arr - array of the data
- * @param updatedDate - passed today for all items
- * @param state - StatusState - can be Pending/Success/Failure, Pending - by default
- *
- * return {
- *     [id]: { state:StatusState, updated: updatedDate }
- *     ...}
- */
-function createNewStatusState({
-  arr,
-  updatedDate,
-  state = StatusState.Pending,
-}: {
-  arr: Array<string>;
-  updatedDate: number;
-  state?: StatusState;
-}) {
-  return arr.reduce(
-    (acc, id) => ({ ...acc, [id]: { state, updated: updatedDate } }),
-    {},
-  );
-}
-
-/**
- *
- * @param challengeId - id of the current challenge
- */
-export function getCurrentTask(challengeId: Challenge["id"]): ActualTask {
-  const challenge: Challenge = (<any>listOfChallenges)[challengeId];
-  const today = new Date();
-  const startChallengeDay = new Date(challenge!.startDate);
-  const passedCountOfDays: number =
-    today.getDate() - startChallengeDay.getDate();
-
-  const taskId: string = String(challenge!.tasksOrder[passedCountOfDays]);
-  const task: Task = (<any>tasks)[taskId];
-  return {
-    ...task,
-    status: challenge.tasksStatus[taskId],
-  };
-}
-
-/**
- *
- * @param challengeId - id of the current challenge
- */
-export function getAchievements(challengeId: Challenge["id"]) {
-  const challenge: Challenge = (<any>listOfChallenges)[challengeId];
-  const actualAchievements: Array<ActualAchievement> = [];
-  const listOfAchievements = { ...defaultAchievements, ...achievements };
-
-  if (challenge) {
-    Object.entries(challenge.achievementsStatus).forEach(([key, value]) => {
-      actualAchievements.push({
-        ...(<any>listOfAchievements)[key],
-        status: value,
-      });
-    });
-  }
-  return actualAchievements;
-}
-
-/**
- *
- * @param challengeId - id of the current challenge
- */
-export function getTaskArchive(challengeId: Challenge["id"]) {
-  const challenge: Challenge = (<any>listOfChallenges)[challengeId];
-  const today = new Date();
-  const startChallengeDay = new Date(challenge!.startDate);
-  const passedCountOfDays: number =
-    today.getDate() - startChallengeDay.getDate();
-
-  const listOfPassedTasksIds = [...challenge.tasksOrder];
-
-  listOfPassedTasksIds.length = passedCountOfDays;
-
-  return listOfPassedTasksIds.map(taskId => ({
-    ...(<any>tasks)[taskId],
-    status: challenge.tasksStatus[taskId],
-  }));
-}
-
-/**
- *
- * @param listOfTasks - all tasks
- * @param listOfAchievements - list of all achievements without default
- * @param challengeDuration - how much days a challenge should be
- * @param numberOfAchievements - number how much achievements should be in the challenge
- */
-export function startNewChallenge({
-  listOfTasks,
-  listOfAchievements,
-  challengeDuration,
-  numberOfAchievements,
-}: {
-  listOfTasks: Record<Task["id"], Task>;
-  listOfAchievements: Record<Achievement["id"], Achievement>;
-  challengeDuration: number;
-  numberOfAchievements: number;
-}) {
-  const date = Date.now();
-
-  const defaultAchievementsIds = Object.keys(defaultAchievements);
-  const randomTasksIds = pickRandomItems(
-    Object.keys(listOfTasks),
-    challengeDuration,
-  );
-  const randomAchievementsIds = [
-    ...pickRandomItems(
-      Object.keys(listOfAchievements),
-      numberOfAchievements - defaultAchievementsIds.length,
-    ),
-    ...defaultAchievementsIds,
-  ];
-
-  const tasksStatus: Record<Task["id"], Status> = createNewStatusState({
-    arr: randomTasksIds,
-    updatedDate: date,
+schedule.scheduleJob("* * 23 * *", () => {
+  console.log("check that current task completed!");
+  Object.values(listOfChallenges).forEach(challenge => {
+    /** Set the current task status to Failure at 12 AM every day during the challenge,
+     *  if the task was not completed by a user this day */
+    const currentTask = getCurrentTask(challenge.id);
+    if (currentTask.status.state !== StatusState.Success) {
+      currentTask.status.state = StatusState.Failure;
+    }
+    /** Calculate the achievements status and the challenge state
+     *  at 12 AM of the last day of the challenge */
+    const listOfAchievements = Object.values(achievements);
+    const tasksStatus: Status[] = Object.values(
+      (<any>listOfChallenges)[challenge.id].tasksStatus,
+    );
+    const achievementStatus = calculateAchievementsStatus(
+      listOfAchievements,
+      tasksStatus,
+    );
+    console.log("currentTask status", currentTask.status.state);
+    console.log("achievementStatus ", achievementStatus);
   });
+});
 
-  const achievementsStatus = createNewStatusState({
-    arr: randomAchievementsIds,
-    updatedDate: date,
+io.on("connection", (socket: any) => {
+  console.log("a user connected to server");
+  socket.on("current task is completed", (challengeId: string) => {
+    console.log("current task is completed");
+    const currentTask = getCurrentTask(challengeId);
+    currentTask.status.state = StatusState.Success;
+
+    const actualAchievements = getAchievements(challengeId);
+    const listOfAchievements = Object.values(actualAchievements);
+    const tasksStatus: Status[] = Object.values(
+      (<any>listOfChallenges)[challengeId].tasksStatus,
+    );
+    const achievementStatus = calculateAchievementsStatus(
+      listOfAchievements,
+      tasksStatus,
+    );
+    console.log("currentTask.status.state", currentTask.status.state);
+    socket.emit("calculated achievements status", achievementStatus);
   });
-
-  const challengeId = String(Math.floor(date / 1000));
-  return {
-    id: challengeId,
-    state: ChallengeState.InProgress,
-    startDate: date,
-    tasksOrder: randomTasksIds,
-    tasksStatus,
-    achievementsStatus,
-  };
-}
-
-/**
- *
- * @param listOfAchievements - all achievements in the current challenge
- * @param tasksStatus  - array of the tasks status in order that should be completed
- */
-export function calculateAchievementsStatus(
-  listOfAchievements: Achievement[],
-  tasksStatus: Status[],
-): { [id: string]: { state: any; updated: number } }[] {
-  return listOfAchievements.map(({ id }) => {
-    const stateStatus = (<any>checkAchievementsComplete)[id](tasksStatus);
-    return {
-      [id]: {
-        state: stateStatus,
-        updated: Date.now(),
-      },
-    };
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
   });
-}
+});
+
+app.get("/", (req, res) => {
+  res.status(200).sendFile("views/index.html", { root: __dirname });
+});
+
+app.use("/challenge/", challengeRouter);
+app.use(express.static(path.join(__dirname, "build/BE")));
+app.use((req, res) => {
+  res.status(404).sendFile("views/404.html", { root: __dirname });
+});
+
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

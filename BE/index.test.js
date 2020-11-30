@@ -4,7 +4,7 @@ import {
   getTaskArchive,
   startNewChallenge,
   calculateAchievementsStatus,
-} from "./index";
+} from "./helpers";
 
 import { CHALLENGE_DURATION, NUMBER_OF_ACHIEVEMENTS } from "./utils/constants";
 import { StatusState } from "./types";
@@ -19,53 +19,53 @@ const dayOfChallenge = 4;
 const listOfChallenges = {
   1: {
     id: 1,
-    startDate: 1606158555000,
+    startDate: 1606397260498,
     taskStatus: "Pending",
     tasksOrder: ["2", "3", "1", "4"],
     tasksStatus: {
       2: {
         state: "Pending",
-        updated: 1605559641866,
+        updated: 1606397260000,
       },
       3: {
         state: "Pending",
-        updated: 1605559641866,
+        updated: 1606397260000,
       },
       1: {
         state: "Pending",
-        updated: 1605559641866,
+        updated: 1606397260000,
       },
       4: {
         state: "Pending",
-        updated: 1605559641866,
+        updated: 1606397260000,
       },
     },
     achievementsStatus: {
       1: {
         state: "Success",
-        updated: 1605708892710,
+        updated: 1606397260000,
       },
       2: {
         state: "Pending",
-        updated: 1605708892710,
+        updated: 1606397260000,
       },
       3: {
         state: "Failure",
-        updated: 1605708892710,
+        updated: 1606397260000,
       },
       10: {
         state: "Success",
-        updated: 1605708892710,
+        updated: 1606397260000,
       },
       11: {
         state: "Pending",
-        updated: 1605708892710,
+        updated: 1606397260000,
       },
     },
   },
   2: {
     id: 2,
-    startDate: 1606158555000,
+    startDate: 1606397260498,
     tasksStatus: "Pending",
     tasksOrder: ["1", "3", "2", "4"],
   },
@@ -140,7 +140,7 @@ describe("getCurrentTask", () => {
   test("should return a task for today", () => {
     const challengeId = "2";
     const currentTaskId = String(
-      listOfChallenges[challengeId].tasksOrder[dayOfChallenge - 1],
+      listOfChallenges[challengeId].tasksOrder[dayOfChallenge],
     );
     const expected = {
       ...tasks[currentTaskId],

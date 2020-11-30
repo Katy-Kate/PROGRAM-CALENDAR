@@ -24,7 +24,7 @@ export interface Achievement {
   id: string;
   description: string;
   image: string;
-  checkComplete: (tasksStatusId: Status[]) => Boolean;
+  checkComplete?: (tasksStatusId: Status[]) => Boolean;
 }
 
 export interface Challenge {

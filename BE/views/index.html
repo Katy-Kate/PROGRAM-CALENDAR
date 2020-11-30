@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../../../../4.node.js/practise/node.js"></script>
+</head>
+<body>
+
+<button id="taskCompleted">completed current task</button>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    const btnTaskCompleted = document.getElementById("taskCompleted");
+    btnTaskCompleted.addEventListener("click",()=>{
+        socket.emit("current task is completed","1");
+    })
+    socket.on("calculated achievements status", function(achievementsStatus){
+        console.log("get achievementsStatus from the server",achievementsStatus)
+    });
+
+
+</script>
+
+</body>
+</html>
